@@ -10,9 +10,9 @@ use declarative::DynamicEncodingSize;
 #[derive(Debug)]
 pub struct Array<'buf, Item>
 where
-    Item: Debug,
+    Item: Debug + PartialEq,
     Item: DeclarativeArgs<'buf>,
-    Item::Argument: Debug,
+    Item::Argument: Debug + PartialEq,
 {
     buffer: &'buf [u8],
     length: usize,
@@ -22,9 +22,9 @@ where
 
 impl<'buf, Item> DeclarativeArgs<'buf> for Array<'buf, Item>
 where
-    Item: Debug,
+    Item: Debug + PartialEq,
     Item: DeclarativeArgs<'buf>,
-    Item::Argument: Debug,
+    Item::Argument: Debug + PartialEq,
 {
     type Argument = (usize, Item::Argument);
     fn parse_with(
@@ -45,9 +45,10 @@ where
 
 impl<'buf, Item> DynamicEncodingSize for Array<'buf, Item>
 where
-    Item: Debug,
-    Item: StaticEncodingSize + DeclarativeArgs<'buf>,
-    Item::Argument: Debug,
+    Item: Debug + PartialEq,
+    Item: StaticEncodingSize,
+    Item: DeclarativeArgs<'buf>,
+    Item::Argument: Debug + Clone + PartialEq,
 {
     fn size(&self) -> usize {
         Item::SIZE * self.length
@@ -56,11 +57,10 @@ where
 
 impl<'buf, Item> IntoIterator for Array<'buf, Item>
 where
-    Item: Debug,
+    Item: Debug + PartialEq,
     Item: StaticEncodingSize,
     Item: DeclarativeArgs<'buf>,
-    <Item as DeclarativeArgs<'buf>>::Argument: Clone,
-    Item::Argument: Debug,
+    Item::Argument: Debug + Clone + PartialEq,
 {
     type IntoIter = ArrayIter<'buf, Item>;
     type Item = Result<Item, Error>;
@@ -77,24 +77,23 @@ where
 
 pub struct ArrayIter<'buf, Item>
 where
-    Item: Debug,
+    Item: Debug + PartialEq,
     Item: DeclarativeArgs<'buf>,
-    <Item as DeclarativeArgs<'buf>>::Argument: Clone,
-    Item::Argument: Debug,
+    Item::Argument: Debug + Clone + PartialEq,
 {
     buffer: &'buf [u8],
     length: usize,
-    argument: <Item as DeclarativeArgs<'buf>>::Argument,
+    argument: Item::Argument,
     cursor: usize,
     phantom: PhantomData<Item>,
 }
 
 impl<'buf, Item> Iterator for ArrayIter<'buf, Item>
 where
-    Item: Debug,
-    Item: StaticEncodingSize + DeclarativeArgs<'buf>,
-    <Item as DeclarativeArgs<'buf>>::Argument: Clone,
-    Item::Argument: Debug,
+    Item: Debug + PartialEq,
+    Item: StaticEncodingSize,
+    Item: DeclarativeArgs<'buf>,
+    Item::Argument: Debug + Clone + PartialEq,
 {
     type Item = Result<Item, Error>;
     fn next(&mut self) -> Option<Result<Item, Error>> {

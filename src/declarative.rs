@@ -48,7 +48,7 @@ pub trait DeclarativeRead<'buf>: Sized {
     fn parse<T: Declarative<'buf>>(&mut self) -> Result<T, Error>;
     fn parse_array<T>(&mut self, length: usize) -> Result<Array<'buf, T>, Error>
     where
-        T: Debug,
+        T: Debug + PartialEq,
         T: Declarative<'buf> + StaticEncodingSize;
 }
 
@@ -61,7 +61,7 @@ impl<'buf> DeclarativeRead<'buf> for &'buf [u8] {
 
     fn parse_array<T>(&mut self, length: usize) -> Result<Array<'buf, T>, Error>
     where
-        T: Debug,
+        T: Debug + PartialEq,
         T: Declarative<'buf> + StaticEncodingSize,
     {
         self.parse_with::<Array<T>>((length, ()))
@@ -69,11 +69,16 @@ impl<'buf> DeclarativeRead<'buf> for &'buf [u8] {
 }
 
 pub trait DeclarativeArgsRead<'buf>: Sized {
-    fn parse_with<T: DeclarativeArgs<'buf>>(&mut self, args: T::Argument) -> Result<T, Error>;
+    fn parse_with<T>(&mut self, args: T::Argument) -> Result<T, Error>
+    where
+        T: DeclarativeArgs<'buf>;
 }
 
 impl<'buf> DeclarativeArgsRead<'buf> for &'buf [u8] {
-    fn parse_with<T: DeclarativeArgs<'buf>>(&mut self, args: T::Argument) -> Result<T, Error> {
+    fn parse_with<T>(&mut self, args: T::Argument) -> Result<T, Error>
+    where
+        T: DeclarativeArgs<'buf>
+    {
         let (result, rest) = T::parse_with(self, args)?;
         *self = rest;
         Ok(result)
