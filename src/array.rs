@@ -16,7 +16,7 @@ where
 {
     buffer: &'buf [u8],
     length: usize,
-    argument: <Item as DeclarativeArgs<'buf>>::Argument,
+    argument: Item::Argument,
     phantom: PhantomData<Item>,
 }
 
