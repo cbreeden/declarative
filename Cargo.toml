@@ -5,3 +5,4 @@ authors = ["Christopher Breeden <github@u.breeden.cc>"]
 
 [dependencies]
 byteorder = "*"
+declarative-macros = { path = "declarative_macros", version = "*" }
